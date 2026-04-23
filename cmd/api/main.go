@@ -26,8 +26,6 @@ func main() {
 		},
 	}
 
-	log.Println(cfg.db.dsn)
-
 	db, err := db.New(cfg.db.dsn, cfg.db.maxOpenConns, cfg.db.maxOpenConns, cfg.db.maxIdleTime)
 
 	if err != nil {
