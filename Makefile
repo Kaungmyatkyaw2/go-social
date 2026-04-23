@@ -21,3 +21,8 @@ migrate-down:
 fmt:
 	@echo "Formatting Go files..."
 	@go fmt ./...
+
+
+.PHONY: seed
+seed:
+	@go run cmd/migrate/seed/main.go

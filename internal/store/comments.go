@@ -3,8 +3,6 @@ package store
 import (
 	"context"
 	"database/sql"
-
-	"github.com/lib/pq"
 )
 
 type Comment struct {
@@ -13,30 +11,34 @@ type Comment struct {
 	UserID    int64  `json:"user_id"`
 	PostID    int64  `json:"post_id"`
 	CreatedAt string `json:"created_at"`
-	User      User   `json:"user"`
+	User      *User   `json:"user"`
 }
 
 type CommentStore struct {
 	db *sql.DB
 }
 
-func (s *CommentStore) Create(ctx context.Context, post *Post) error {
+func (s *CommentStore) Create(ctx context.Context, comment *Comment) error {
 
-	query := `INSERT INTO posts (content, title, user_id, tags)
-			  VALUES ($1, $2, $3, $4) RETURNING id, created_at, updated_at
+	query := `INSERT INTO comments (content, user_id, post_id)
+			  VALUES ($1, $2, $3) RETURNING id, content, user_id, post_id ,created_at
 	`
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeOutDuration)
+	defer cancel()
 
 	err := s.db.QueryRowContext(
 		ctx,
 		query,
-		post.Content,
-		post.Title,
-		post.UserID,
-		pq.Array(post.Tags),
+		comment.Content,
+		comment.UserID,
+		comment.PostID,
 	).Scan(
-		&post.ID,
-		&post.CreatedAt,
-		&post.UpdatedAt,
+		&comment.ID,
+		&comment.Content,
+		&comment.UserID,
+		&comment.PostID,
+		&comment.CreatedAt,
 	)
 
 	if err != nil {
@@ -55,6 +57,9 @@ func (s *CommentStore) GetByPostID(ctx context.Context, postID int64) ([]Comment
 		ORDER BY c.created_at DESC;
 	`
 
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeOutDuration)
+	defer cancel()
+
 	rows, err := s.db.QueryContext(ctx, query, postID)
 
 	if err != nil {
@@ -68,7 +73,7 @@ func (s *CommentStore) GetByPostID(ctx context.Context, postID int64) ([]Comment
 	for rows.Next() {
 		var c Comment
 
-		c.User = User{}
+		c.User = &User{}
 
 		err := rows.Scan(&c.ID, &c.PostID, &c.UserID, &c.Content, &c.CreatedAt, &c.User.Username, &c.User.ID)
 
