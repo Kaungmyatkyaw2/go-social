@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"time"
 
@@ -12,11 +11,13 @@ import (
 
 	"github.com/Kaungmyatkyaw2/go-social/docs"
 	httpSwagger "github.com/swaggo/http-swagger"
+	"go.uber.org/zap"
 )
 
 type application struct {
 	config config
 	store  store.Storage
+	logger *zap.SugaredLogger
 }
 
 type config struct {
@@ -43,6 +44,12 @@ func (app *application) mount() http.Handler {
 	r.Use(middleware.Recoverer)
 
 	r.Use(middleware.Timeout(60 * time.Second))
+
+	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
+
+		app.writeJSONError(w, http.StatusNotFound, "not found")
+
+	})
 
 	r.Route("/v1", func(r chi.Router) {
 		r.Get("/health", app.healthCheckHandler)
@@ -105,7 +112,7 @@ func (app *application) run(mux http.Handler) error {
 		IdleTimeout:  time.Minute,
 	}
 
-	log.Printf("server has started at %s", app.config.addr)
+	app.logger.Infow("server has started","addr", app.config.addr,"env",app.config.env)
 
 	return srv.ListenAndServe()
 }
