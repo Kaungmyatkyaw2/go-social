@@ -1,6 +1,8 @@
 package main
 
 import (
+	"time"
+
 	"github.com/Kaungmyatkyaw2/go-social/internal/db"
 	"github.com/Kaungmyatkyaw2/go-social/internal/env"
 	"github.com/Kaungmyatkyaw2/go-social/internal/store"
@@ -40,12 +42,13 @@ func main() {
 			maxIdleConns: env.GetInt("DB_MAX_IDLE_CONNS", 30),
 			maxIdleTime:  env.GetString("DB_MAX_IDLE_TIME", "15m"),
 		},
+		mail: mailConfig{
+			expDuration: 24 * time.Hour * 3,
+		},
 	}
 
 	logger := zap.Must(zap.NewProduction()).Sugar()
 	defer logger.Sync()
-
-
 
 	db, err := db.New(cfg.db.dsn, cfg.db.maxOpenConns, cfg.db.maxOpenConns, cfg.db.maxIdleTime)
 

@@ -25,6 +25,7 @@ type config struct {
 	addr   string
 	db     dbConfig
 	apiURL string
+	mail   mailConfig
 }
 
 type dbConfig struct {
@@ -32,6 +33,10 @@ type dbConfig struct {
 	maxOpenConns int
 	maxIdleConns int
 	maxIdleTime  string
+}
+
+type mailConfig struct {
+	expDuration time.Duration
 }
 
 func (app *application) mount() http.Handler {
@@ -76,6 +81,8 @@ func (app *application) mount() http.Handler {
 
 		r.Route("/users", func(r chi.Router) {
 
+			r.Put("/activate/{token}", app.activateUserHandler)
+
 			r.Route("/{userID}", func(r chi.Router) {
 
 				r.Use(app.userContextMiddleware)
@@ -90,6 +97,10 @@ func (app *application) mount() http.Handler {
 				r.Get("/feed", app.getUserFeedHandler)
 			})
 
+		})
+
+		r.Route("/auth", func(r chi.Router) {
+			r.Post("/register", app.registerUserHandler)
 		})
 
 	})
@@ -112,7 +123,7 @@ func (app *application) run(mux http.Handler) error {
 		IdleTimeout:  time.Minute,
 	}
 
-	app.logger.Infow("server has started","addr", app.config.addr,"env",app.config.env)
+	app.logger.Infow("server has started", "addr", app.config.addr, "env", app.config.env)
 
 	return srv.ListenAndServe()
 }

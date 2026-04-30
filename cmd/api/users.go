@@ -128,6 +128,42 @@ func (app *application) unfollowUserHandler(w http.ResponseWriter, r *http.Reque
 
 }
 
+// ActivateUser godoc
+//
+//	@Summary		Activates a user account
+//	@Description	Activates a user account using a token
+//	@Tags			users
+//	@Produce		json
+//	@Param			token	path		string	true	"Activation token"
+//	@Success		204		{string}	string	"User activated"
+//	@Failure		400		{object}	error
+//	@Failure		404		{object}	error
+//	@Failure		500		{object}	error
+//	@Security		ApiKeyAuth
+//	@Router			/users/activate/{token} [put]
+func (app *application) activateUserHandler(w http.ResponseWriter, r *http.Request) {
+
+	token := chi.URLParam(r, "token")
+
+	err := app.store.Users.Activate(r.Context(), token)
+
+	if err != nil {
+		switch {
+		case errors.Is(err, store.ErrorNotFound):
+			app.notFoundResponse(w, r, err)
+
+		default:
+			app.internalServerError(w, r, err)
+		}
+		return
+	}
+
+	if err := app.jsonResponse(w, http.StatusNoContent, nil); err != nil {
+		app.internalServerError(w, r, err)
+	}
+
+}
+
 func (app *application) userContextMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
