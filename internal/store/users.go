@@ -165,6 +165,22 @@ func (s *UserStore) GetByID(ctx context.Context, id int64) (*User, error) {
 	return user, nil
 }
 
+func (s *UserStore) Delete(ctx context.Context, userID int64) error {
+
+	return withTx(s.db, ctx, func(tx *sql.Tx) error {
+
+		if err := s.delete(ctx,tx,userID); err != nil {
+			return err 
+		}
+
+		if err := s.deleteUserInvitations(ctx,tx,userID); err != nil {
+			return err
+		}
+
+		return nil
+	})
+}
+
 func (s *UserStore) createUserInvitation(ctx context.Context, tx *sql.Tx, token string, expireDuration time.Duration, userID int64) error {
 
 	query := `
@@ -232,6 +248,21 @@ func (s *UserStore) update(ctx context.Context, tx *sql.Tx, user *User) error {
 	_, err := tx.ExecContext(ctx, query, user.Username, user.Email, user.IsActive, user.ID)
 
 	return err
+}
+
+
+func (s *UserStore) delete(ctx context.Context, tx *sql.Tx, userID int64) error {
+
+	query := `
+		DELETE FROM users WHERE id = $1
+	`
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeOutDuration)
+	defer cancel()
+
+	_, err := tx.ExecContext(ctx, query, userID)
+
+	return err	
 }
 
 func (s *UserStore) deleteUserInvitations(ctx context.Context, tx *sql.Tx, userID int64) error {

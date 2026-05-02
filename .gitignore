@@ -1,3 +1,8 @@
-*.env
+# Ignore all environment files
 .env
+.env.*
+!.env.example
+
+# Ignore the bin directory
+bin/
 ./bin

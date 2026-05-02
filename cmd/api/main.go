@@ -5,6 +5,7 @@ import (
 
 	"github.com/Kaungmyatkyaw2/go-social/internal/db"
 	"github.com/Kaungmyatkyaw2/go-social/internal/env"
+	"github.com/Kaungmyatkyaw2/go-social/internal/mailer"
 	"github.com/Kaungmyatkyaw2/go-social/internal/store"
 	"github.com/joho/godotenv"
 	"go.uber.org/zap"
@@ -36,6 +37,7 @@ func main() {
 		addr:   env.GetString("ADDR", ":8080"),
 		env:    env.GetString("ENV", "development"),
 		apiURL: env.GetString("API_URL", "localhost:8080"),
+		frontEndURL: env.GetString("FRONTEND_URL", "localhost:3000"),
 		db: dbConfig{
 			dsn:          env.GetString("DB_DSN", "postgres://admin:adminpassword@localhost:5435/social?sslmode=disable"),
 			maxOpenConns: env.GetInt("DB_MAX_OPEN_CONNS", 30),
@@ -44,6 +46,11 @@ func main() {
 		},
 		mail: mailConfig{
 			expDuration: 24 * time.Hour * 3,
+			sendGrid: sendGridConfig{
+				apiKey: env.GetString("SENDGRID_API_KEY",""),
+				fromEmail: env.GetString("SENDGRID_FROM_EMAIL",""),
+				fromName: env.GetString("SENDGRID_FROM_NAME",""),
+			},
 		},
 	}
 
@@ -58,13 +65,16 @@ func main() {
 
 	defer db.Close()
 	logger.Info("database connection pool established")
+	logger.Info(cfg.mail.sendGrid.apiKey)
 
 	store := store.NewStorage(db)
+	mailer := mailer.NewSendGrid(cfg.mail.sendGrid.apiKey,cfg.mail.sendGrid.fromEmail,cfg.mail.sendGrid.fromName)
 
 	app := &application{
 		config: cfg,
 		store:  store,
 		logger: logger,
+		mailer: mailer,
 	}
 
 	mux := app.mount()
