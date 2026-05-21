@@ -23,11 +23,11 @@ type application struct {
 }
 
 type config struct {
-	env    string
-	addr   string
-	db     dbConfig
-	apiURL string
-	mail   mailConfig
+	env         string
+	addr        string
+	db          dbConfig
+	apiURL      string
+	mail        mailConfig
 	frontEndURL string
 }
 
@@ -40,8 +40,8 @@ type dbConfig struct {
 
 type mailConfig struct {
 	expDuration time.Duration
-	sendGrid sendGridConfig
-	mailTrap mailTrapConfig
+	sendGrid    sendGridConfig
+	mailTrap    mailTrapConfig
 }
 
 type sendGridConfig struct {
@@ -50,15 +50,13 @@ type sendGridConfig struct {
 	fromName  string
 }
 
-
 type mailTrapConfig struct {
-	host string
-	port int
-	username string
-	password string
+	host      string
+	port      int
+	username  string
+	password  string
 	fromEmail string
-	fromName string
-
+	fromName  string
 }
 
 func (app *application) mount() http.Handler {

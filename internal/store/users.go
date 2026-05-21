@@ -169,11 +169,11 @@ func (s *UserStore) Delete(ctx context.Context, userID int64) error {
 
 	return withTx(s.db, ctx, func(tx *sql.Tx) error {
 
-		if err := s.delete(ctx,tx,userID); err != nil {
-			return err 
+		if err := s.delete(ctx, tx, userID); err != nil {
+			return err
 		}
 
-		if err := s.deleteUserInvitations(ctx,tx,userID); err != nil {
+		if err := s.deleteUserInvitations(ctx, tx, userID); err != nil {
 			return err
 		}
 
@@ -250,7 +250,6 @@ func (s *UserStore) update(ctx context.Context, tx *sql.Tx, user *User) error {
 	return err
 }
 
-
 func (s *UserStore) delete(ctx context.Context, tx *sql.Tx, userID int64) error {
 
 	query := `
@@ -262,7 +261,7 @@ func (s *UserStore) delete(ctx context.Context, tx *sql.Tx, userID int64) error 
 
 	_, err := tx.ExecContext(ctx, query, userID)
 
-	return err	
+	return err
 }
 
 func (s *UserStore) deleteUserInvitations(ctx context.Context, tx *sql.Tx, userID int64) error {

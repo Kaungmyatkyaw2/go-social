@@ -34,9 +34,9 @@ func main() {
 	godotenv.Load()
 
 	cfg := config{
-		addr:   env.GetString("ADDR", ":8080"),
-		env:    env.GetString("ENV", "development"),
-		apiURL: env.GetString("API_URL", "localhost:8080"),
+		addr:        env.GetString("ADDR", ":8080"),
+		env:         env.GetString("ENV", "development"),
+		apiURL:      env.GetString("API_URL", "localhost:8080"),
 		frontEndURL: env.GetString("FRONTEND_URL", "localhost:3000"),
 		db: dbConfig{
 			dsn:          env.GetString("DB_DSN", "postgres://admin:adminpassword@localhost:5435/social?sslmode=disable"),
@@ -47,17 +47,17 @@ func main() {
 		mail: mailConfig{
 			expDuration: 24 * time.Hour * 3,
 			sendGrid: sendGridConfig{
-				apiKey: env.GetString("SENDGRID_API_KEY",""),
-				fromEmail: env.GetString("SENDGRID_FROM_EMAIL",""),
-				fromName: env.GetString("SENDGRID_FROM_NAME",""),
+				apiKey:    env.GetString("SENDGRID_API_KEY", ""),
+				fromEmail: env.GetString("SENDGRID_FROM_EMAIL", ""),
+				fromName:  env.GetString("SENDGRID_FROM_NAME", ""),
 			},
 			mailTrap: mailTrapConfig{
-				host: env.GetString("MAILTRAP_HOST", "live.smtp.mailtrap.io"),
-				port: env.GetInt("MAILTRAP_PORT", 587),
-				username: env.GetString("MAILTRAP_USERNAME", ""),
-				password: env.GetString("MAILTRAP_PASSWORD", ""),
+				host:      env.GetString("MAILTRAP_HOST", "live.smtp.mailtrap.io"),
+				port:      env.GetInt("MAILTRAP_PORT", 587),
+				username:  env.GetString("MAILTRAP_USERNAME", ""),
+				password:  env.GetString("MAILTRAP_PASSWORD", ""),
 				fromEmail: env.GetString("MAILTRAP_FROM_EMAIL", ""),
-				fromName: env.GetString("MAILTRAP_FROM_NAME", ""),
+				fromName:  env.GetString("MAILTRAP_FROM_NAME", ""),
 			},
 		},
 	}
@@ -76,8 +76,7 @@ func main() {
 	logger.Info(cfg.mail.sendGrid.apiKey)
 
 	store := store.NewStorage(db)
-	mailer,err := mailer.NewMailTrap(cfg.mail.mailTrap.host,cfg.mail.mailTrap.port,cfg.mail.mailTrap.username,cfg.mail.mailTrap.password,cfg.mail.mailTrap.fromEmail,cfg.mail.mailTrap.fromName)
-
+	mailer, err := mailer.NewMailTrap(cfg.mail.mailTrap.host, cfg.mail.mailTrap.port, cfg.mail.mailTrap.username, cfg.mail.mailTrap.password, cfg.mail.mailTrap.fromEmail, cfg.mail.mailTrap.fromName)
 
 	if err != nil {
 		logger.Fatal(err)
