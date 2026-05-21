@@ -41,12 +41,24 @@ type dbConfig struct {
 type mailConfig struct {
 	expDuration time.Duration
 	sendGrid sendGridConfig
+	mailTrap mailTrapConfig
 }
 
 type sendGridConfig struct {
 	apiKey    string
 	fromEmail string
 	fromName  string
+}
+
+
+type mailTrapConfig struct {
+	host string
+	port int
+	username string
+	password string
+	fromEmail string
+	fromName string
+
 }
 
 func (app *application) mount() http.Handler {

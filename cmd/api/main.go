@@ -51,6 +51,14 @@ func main() {
 				fromEmail: env.GetString("SENDGRID_FROM_EMAIL",""),
 				fromName: env.GetString("SENDGRID_FROM_NAME",""),
 			},
+			mailTrap: mailTrapConfig{
+				host: env.GetString("MAILTRAP_HOST", "live.smtp.mailtrap.io"),
+				port: env.GetInt("MAILTRAP_PORT", 587),
+				username: env.GetString("MAILTRAP_USERNAME", ""),
+				password: env.GetString("MAILTRAP_PASSWORD", ""),
+				fromEmail: env.GetString("MAILTRAP_FROM_EMAIL", ""),
+				fromName: env.GetString("MAILTRAP_FROM_NAME", ""),
+			},
 		},
 	}
 
@@ -68,7 +76,12 @@ func main() {
 	logger.Info(cfg.mail.sendGrid.apiKey)
 
 	store := store.NewStorage(db)
-	mailer := mailer.NewSendGrid(cfg.mail.sendGrid.apiKey,cfg.mail.sendGrid.fromEmail,cfg.mail.sendGrid.fromName)
+	mailer,err := mailer.NewMailTrap(cfg.mail.mailTrap.host,cfg.mail.mailTrap.port,cfg.mail.mailTrap.username,cfg.mail.mailTrap.password,cfg.mail.mailTrap.fromEmail,cfg.mail.mailTrap.fromName)
+
+
+	if err != nil {
+		logger.Fatal(err)
+	}
 
 	app := &application{
 		config: cfg,
