@@ -2,7 +2,6 @@ package mailer
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
@@ -50,7 +49,7 @@ func (m *SendGridMailer) Send(templateFile, username, email string, data any, is
 		},
 	})
 
-	retryAttempt(func() error {
+	return retryAttempt(func() error {
 		response, err := m.client.Send(message)
 
 		if err != nil {
@@ -58,8 +57,6 @@ func (m *SendGridMailer) Send(templateFile, username, email string, data any, is
 		}
 
 		if response.StatusCode >= 200 && response.StatusCode < 300 {
-			log.Printf("Email sent with status code %v", response.StatusCode)
-
 			return nil
 		}
 
@@ -67,5 +64,5 @@ func (m *SendGridMailer) Send(templateFile, username, email string, data any, is
 
 	}, maxRetries, email)
 
-	return fmt.Errorf("failed to send email after %d attemtps", maxRetries)
+	 
 }

@@ -47,7 +47,7 @@ func (m mailtrapClient) Send(templateFile, username, email string, data any, isS
 
 	dialer := gomail.NewDialer(m.host, m.port, m.username, m.password)
 
-	retryAttempt(func() error {
+	return retryAttempt(func() error {
 		if err := dialer.DialAndSend(message); err != nil {
 			return err
 		}
@@ -56,5 +56,4 @@ func (m mailtrapClient) Send(templateFile, username, email string, data any, isS
 
 	}, maxRetries, email)
 
-	return nil
 }

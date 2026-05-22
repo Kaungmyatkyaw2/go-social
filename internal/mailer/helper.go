@@ -2,8 +2,8 @@ package mailer
 
 import (
 	"bytes"
+	"fmt"
 	"html/template"
-	"log"
 	"time"
 )
 
@@ -41,21 +41,22 @@ func buildTemplate(templateFile string, data any) (*templateRes, error) {
 
 type emailSendFn func() error
 
-func retryAttempt(send emailSendFn, maxAttempt int, toEmail string) {
+func retryAttempt(send emailSendFn, maxAttempt int, toEmail string) error {
+
+	var respErr error
+
 	for i := range maxAttempt {
-		err := send()
+		respErr := send()
 
-		if err != nil {
-			log.Printf("Failed to send email to %v, attempt %d of %d", toEmail, i+1, maxAttempt)
-			log.Printf("Error: %v", err.Error())
-
+		if respErr != nil {
 			time.Sleep(time.Second * time.Duration(i+1))
 			continue
 		}
 
-		log.Printf("Email Successfully send to %v", toEmail)
 
-		return
+		return nil 
 
 	}
+
+	return fmt.Errorf("failed to send email after %d attemtps, error: %v", maxRetries, respErr)
 }
