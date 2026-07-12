@@ -5,9 +5,11 @@ import (
 	"encoding/hex"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/Kaungmyatkyaw2/go-social/internal/mailer"
 	"github.com/Kaungmyatkyaw2/go-social/internal/store"
+	"github.com/golang-jwt/jwt"
 	"github.com/google/uuid"
 )
 
@@ -115,4 +117,82 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+}
+
+
+
+type CreateUserTokenPayload struct {
+	Email string `json:"email" validate:"required,email,max=255"`
+	Password string `json:"password" validate:"required,min=8,max=100"`
+}
+
+// createTokenHandler godoc
+//
+//	@Summary		Create a token
+//	@Description	Create a token for a user
+//	@Tags			auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			payload	body		CreateUserTokenPayload	true	"User credentials"
+//	@Success		200		{string}	string		"User Token"
+//	@Failure		400		{object}	error
+//	@Failure		401	{object}	error
+//	@Failure		500		{object}	error
+//	@Router			/auth/token [post]
+func (app *application) createTokenHandler(w http.ResponseWriter,r *http.Request) {
+	// parse payload credentials 
+
+		var payload CreateUserTokenPayload
+
+	if err := readJSON(w, r, &payload); err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	if err := Validate.Struct(payload); err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+
+	user, err := app.store.Users.GetByEmail(r.Context(),payload.Email)
+
+
+
+
+	if err != nil {
+		switch err{
+		case store.ErrorNotFound:
+			app.unauthorizedResponse(w,r,err)
+			return
+
+		default:
+			app.internalServerError(w,r,err)
+			return 
+		}
+	}
+
+
+	claims := jwt.MapClaims{
+		"sub" : user.ID,
+		"expo" : time.Now().Add(app.config.auth.token.exp).Unix(),
+		"iat" :  time.Now().Unix(),
+		"nbf" :  time.Now().Unix(),
+		"iss" : app.config.auth.token.iss,
+		"aud" : app.config.auth.token.iss,
+	}
+
+
+	token, err := app.authenticator.GenerateToken(claims)
+
+
+	if err != nil {
+		app.internalServerError(w,r,err)
+		return 
+	}
+
+
+	if err := app.jsonResponse(w,http.StatusCreated,token); err != nil {
+		app.internalServerError(w,r,err)
+	}
 }

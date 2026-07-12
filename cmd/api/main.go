@@ -3,6 +3,7 @@ package main
 import (
 	"time"
 
+	"github.com/Kaungmyatkyaw2/go-social/internal/auth"
 	"github.com/Kaungmyatkyaw2/go-social/internal/db"
 	"github.com/Kaungmyatkyaw2/go-social/internal/env"
 	"github.com/Kaungmyatkyaw2/go-social/internal/mailer"
@@ -65,6 +66,12 @@ func main() {
 				user: env.GetString("BASIC_AUTH_USER", ""),
 				pass: env.GetString("BASIC_AUTH_PASS", ""),
 			},
+
+			token : tokenConfig{ 
+				secret: env.GetString("AUTH_TOKEN_SECRET","example"),
+				exp: time.Hour * 24 * 3,
+				iss : env.GetString("AUTH_TOKEN_ISS","gosocial"),
+			},
 		},
 	}
 
@@ -88,11 +95,17 @@ func main() {
 		logger.Fatal(err)
 	}
 
+
+
+
+	jwtAuthenticator := auth.NewJWTAuthenticator(cfg.auth.token.secret,cfg.auth.token.iss,cfg.auth.token.iss)
+
 	app := &application{
 		config: cfg,
 		store:  store,
 		logger: logger,
 		mailer: mailer,
+		authenticator: jwtAuthenticator,
 	}
 
 	mux := app.mount()
